@@ -1,5 +1,6 @@
 <?php
 $floor = parse('./input');
+// $floor = parse('./example');
 $width = count($floor[0]);
 $height = count($floor);
 
@@ -25,19 +26,31 @@ function enlargeBasin($basin, $x, $y):array{
   if (!in_array("$x:$y", $basin)){
     $basin[] = "$x:$y";
     $level = $floor[$y][$x];
-    if ($level == 8) return $basin;
-    if (0 < $y && $floor[$y - 1][$x] == $level + 1){
-      $basin = enlargeBasin($basin, $x, $y - 1);
+    if (0 < $y){
+      $nextCell = $floor[$y - 1][$x];
+      // if ($nextCell < 9 && $level <= $nextCell && $nextCell <= $level + 1 ){
+      if ($nextCell < 9 && $level <= $nextCell ){
+        $basin = enlargeBasin($basin, $x, $y - 1);
+      }
     }
-    if ($y < $height - 1 && $floor[$y + 1][$x] == $level + 1){
-      $basin = enlargeBasin($basin, $x, $y + 1);
+    if ($y < $height - 1){
+      $nextCell = $floor[$y + 1][$x];
+      if ($nextCell < 9 && $level <= $nextCell ){
+        $basin = enlargeBasin($basin, $x, $y + 1);
+      }
     }
 
-    if (0 < $x && $floor[$y][$x - 1] == $level + 1){
-      $basin = enlargeBasin($basin, $x - 1, $y);
+    if (0 < $x){
+      $nextCell = $floor[$y][$x - 1];
+      if ($nextCell < 9 && $level <= $nextCell ){
+        $basin = enlargeBasin($basin, $x - 1, $y);
+      }
     }
-    if ($x < $width - 1 && $floor[$y][$x + 1] == $level + 1){
-      $basin = enlargeBasin($basin, $x + 1, $y);
+    if ($x < $width - 1){
+      $nextCell = $floor[$y][$x + 1];
+      if ($nextCell < 9 && $level <= $nextCell ){
+        $basin = enlargeBasin($basin, $x + 1, $y);
+      }
     }
   }
   return $basin;
