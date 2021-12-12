@@ -1,0 +1,33 @@
+<?php
+$map = parse('./input');
+$paths = getPaths($map, ['start'], 'start', 0);
+echo count($paths);
+
+function getPaths($map, $visited, string $begin):array{
+  $visited[] = $begin;
+  if ($begin == 'end') {return [['end']];}
+  $paths = [];
+  foreach($map[$begin] as $cavern){
+    if ( $cavern == strtoupper($cavern) || !in_array($cavern,$visited)){
+      $childs = getPaths($map, $visited, $cavern);
+      foreach ($childs as $child){
+        $paths[] = array_merge([$begin], $child);
+      }
+    }
+  }
+  return $paths;
+}
+
+function parse(string $filePath){
+  $map = [];
+  $paths = array_map(fn($line) => array_filter(explode('-', trim($line)), fn($part) => $part != '-'), file($filePath));
+  foreach ($paths as $path) {
+    if (!array_key_exists($path[0], $map)){ $map[$path[0]] = []; }
+    if (!in_array($path[1], $map[$path[0]])){ $map[$path[0]][] = $path[1]; }
+    if (!array_key_exists($path[1], $map)){ $map[$path[1]] = []; }
+    if (!in_array($path[0], $map[$path[1]])){ $map[$path[1]][] = $path[0]; }
+  }
+  return $map;
+}
+
+?>
