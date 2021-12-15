@@ -1,37 +1,45 @@
 <?php
-$data = parse('./input');
+$data = parse('./example');
 
 $rules = $data['rules'];
-$formula = str_split($data['formula']);
+$formula = $data['formula'];
+
+$input = fopen('php://memory','r+');
+fwrite($input, $formula);
 
 for ($i = 0; $i < 40; $i++) {
-  echo $i . "\n";
-  $formula = doStep($formula, $rules);
+  echo $i."\n";
+  $input = decode($rules, $input);
 }
+rewind($input);
 
-$count = array_reduce($formula, function($counts, $char) {
-  if (!array_key_exists($char, $counts)){ $counts[$char] = 0; }
-  $counts[$char] += 1;
-  return $counts;
-}, [] );
-
-$maxVal = max($count);
-$minVal = min($count);
-echo $maxVal - $minVal;
-
-function doStep($formula, $rules){
-  $newFormula = [];
-  $formula = array_reverse($formula);
-  $count = count($formula);
-  while ($count > 1){
-    $char = array_pop($formula);
-    $search = $char. end($formula);
-    $newFormula[] = $char;
-    $newFormula[] = $rules[$search] ?? "";
-    $count -= 1;
+$counts = [];
+while (!feof($input)) {
+  $char = fread($input, 1);
+  if (!empty($char)){
+    if (!array_key_exists($char, $counts)){ $counts[$char] = 0; }
+    $counts[$char] += 1; 
   }
-  $newFormula[] = end($formula);
-  return $newFormula;
+}
+// print_r($counts);
+fclose($input);
+
+echo max($counts) - min($counts);
+
+function decode($rules, $input){
+  rewind($input);
+  $output = fopen("php://temp", 'w+');
+
+  $first = fread($input, 1);
+  while (!feof($input)) {
+    $second = fread($input, 1);
+    $decoded = $rules[$first.$second] ?? "";
+    fwrite($output, $first.$decoded);
+    $first = $second;
+  }
+  fwrite($output, $first);
+  fclose($input);
+  return $output;
 }
 
 function parse(string $filePath){
