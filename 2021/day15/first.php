@@ -41,7 +41,6 @@ class RiskCalculator {
     $todo["$x:".($y+1)] = $this->updateDist($dist, $x, $y + 1);
     $todo = array_filter($todo);
     asort($todo);
-      // print_r($todo);
     foreach($todo as $point => $risk){
       $point = explode(':', $point);
       $this->dijkstra($point[0], $point[1]);
@@ -50,7 +49,7 @@ class RiskCalculator {
 
   private function updateDist($dist, $x, $y){
     if ($x >= 0 && $y >= 0 && $x < $this->width && $y < $this->height && !in_array("$x:$y", $this->done)){
-      // echo "nei ($dist) $x $y : ";
+      // echo "($dist) $x $y : ";
       $previous = 99999;
       if (!array_key_exists($y, $this->dists)){
         $this->dists[$y] = []; 
@@ -64,8 +63,10 @@ class RiskCalculator {
   }
 
   private function showDists(){
-    foreach($this->dists as $line){
-      echo join( ' | ', $line );
+    for ($y = 0; $y < $this->height; $y++) {
+      for ($x = 0; $x < $this->width; $x++) {
+        echo str_pad($this->dists[$y][$x], 4);
+      }
       echo "\n";
     }
   }
