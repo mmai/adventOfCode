@@ -7,10 +7,12 @@ echo $calc->getEndDist();
 
 class RiskCalculator {
   private $data;
+  private $todo;
   private $done;
   private $dists;
   private $height;
   private $width;
+  private $found;
   private $counter;
 
   public function __construct($data)
@@ -19,8 +21,9 @@ class RiskCalculator {
     $this->height = count($this->data);
     $this->width = count($this->data[0]);
     $this->dists = [[0]];
+    $this->todo = [];
     $this->counter = 0;
-    echo $this->height . " x " . $this->width . "\n";
+    // echo $this->height . " x " . $this->width . "\n";
   }
 
   public function getEndDist(){
@@ -34,20 +37,31 @@ class RiskCalculator {
     // echo "$x:$y \n";
     $this->done[] = "$x:$y";
     $dist = $this->dists[$y][$x];
-    $todo = [];
-    $todo[($x-1).":$y"] = $this->updateDist($dist, $x-1, $y);
-    $todo["$x:".($y-1)] = $this->updateDist($dist, $x, $y - 1);
-    $todo[($x+1).":$y"] = $this->updateDist($dist, $x+1, $y);
-    $todo["$x:".($y+1)] = $this->updateDist($dist, $x, $y + 1);
-    $todo = array_filter($todo);
-    asort($todo);
-    foreach($todo as $point => $risk){
-      $point = explode(':', $point);
-      $this->dijkstra($point[0], $point[1]);
+    if (!is_null($this->found)){ 
+      return false;
     }
+    if ($x == $this->width - 1 && $y == $this->height - 1){ 
+      $this->found = $this->dists[$y][$x];
+      return false;
+    }
+
+    $this->updateDist($dist, $x-1, $y);
+    $this->updateDist($dist, $x, $y - 1);
+    $this->updateDist($dist, $x+1, $y);
+    $this->updateDist($dist, $x, $y + 1);
+
+    // print_r($this->todo);
+    $next = array_splice($this->todo, 0, 1);
+    $point = explode(':',key($next) );
+    $this->dijkstra($point[0], $point[1]);
   }
 
-  private function updateDist($dist, $x, $y){
+  private function addTodo($x, $y, $dist){
+    $this->todo["$x:$y"] = $dist; 
+    asort($this->todo);
+  }
+
+  private function updateDist($fromdist, $x, $y){
     if ($x >= 0 && $y >= 0 && $x < $this->width && $y < $this->height && !in_array("$x:$y", $this->done)){
       // echo "($dist) $x $y : ";
       $previous = 99999;
@@ -55,9 +69,10 @@ class RiskCalculator {
         $this->dists[$y] = []; 
       }
       if (array_key_exists($x, $this->dists[$y])){ $previous = $this->dists[$y][$x]; }
-      $this->dists[$y][$x] = min($previous, $dist + $this->data[$y][$x]);
-      // echo $this->dists[$y][$x]."\n"; 
-      return $this->dists[$y][$x];
+      $dist = min($previous, $fromdist + $this->data[$y][$x]);
+      $this->dists[$y][$x] = $dist;
+      $this->addTodo($x, $y, $dist);
+      // echo $dist."\n"; 
     }
     return false;
   }
